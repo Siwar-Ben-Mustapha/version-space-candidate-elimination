@@ -1,3 +1,4 @@
+
 # Version Space — candidate elimination, step by step
 
 Educational web application for the **candidate elimination** algorithm (Mitchell, 1977), built on the
@@ -7,9 +8,9 @@ examples of the course *Machine Learning Theory*, chapter 2 (slides 72 to 87).
 
 ## Demo video
 
-[![Watch the demo video (1 min 40, with voice-over and subtitles)](docs/apercu.png)](docs/demo.mp4)
+https://github.com/user-attachments/assets/2df34cef-6a75-40fe-b6cd-50da4c8c2ba9
 
-▶ [Watch the demo (1 min 40, voice-over and subtitles)](docs/demo.mp4): the notebook, the board with the pseudo-code, step-by-step build, zoom, infinite and collapsing spaces, and instance classification.
+The notebook, the board with the pseudo-code, the step-by-step build, zoom, infinite and collapsing spaces, and instance classification (1 min 40, with voice-over and subtitles).
 
 ## What the application does
 
