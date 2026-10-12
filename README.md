@@ -1,4 +1,4 @@
-# Espace des versions — l'élimination des candidats, à la craie
+# Espace des versions — l'élimination des candidats, pas à pas
 
 Application web pédagogique pour l'algorithme d'**élimination des candidats** (Mitchell, 1977), sur les
 exemples du cours *Machine Learning Theory*, chapitre 2 (diapositives 72 à 87).
@@ -30,6 +30,8 @@ exemples du cours *Machine Learning Theory*, chapitre 2 (diapositives 72 à 87).
   Le détail est donné contrainte par contrainte, avec le décompte exact des hypothèses qui votent oui
   et non (un décompte, pas une probabilité).
 - **Les exports** : compte rendu Markdown, résultats JSON et dessin SVG.
+
+Palette : fond papier `#F5F0EA` et violet `#A854F6` (G en violet plein, S en violet profond sur fond lavande).
 
 Jeux fournis : Sport (diapositives 73–78), Oiseaux avec intervalles et hiérarchie de couleurs
 (diapositives 79–82), EnjoySport (diapositives 85–87), EnjoySport bruité (diapositive 83) et un exemple contradictoire.

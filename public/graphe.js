@@ -67,17 +67,21 @@ export function dessiner(svg, graphe, { surClic } = {}) {
   }
   const boites = disposer(graphe);
   const all = [...boites.values()];
-  const minX = Math.min(...all.map((b) => b.x)) - 30;
-  const maxX = Math.max(...all.map((b) => b.x + b.w)) + 30;
-  const minY = Math.min(...all.map((b) => b.y)) - 30;
-  const maxY = Math.max(...all.map((b) => b.y + b.h)) + 30;
+  let minX = Math.min(...all.map((b) => b.x)) - 30;
+  let maxX = Math.max(...all.map((b) => b.x + b.w)) + 30;
+  let minY = Math.min(...all.map((b) => b.y)) - 30;
+  let maxY = Math.max(...all.map((b) => b.y + b.h)) + 30;
+  // un petit graphe ne doit pas être agrandi : cadre minimal de 760 × 400
+  const padX = Math.max(0, (760 - (maxX - minX)) / 2);
+  const padY = Math.max(0, (400 - (maxY - minY)) / 2);
+  minX -= padX; maxX += padX; minY -= padY; maxY += padY;
   svg.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
   const defs = el('defs', {}, svg);
   const f = el('filter', { id: 'craie', x: '-5%', y: '-5%', width: '110%', height: '110%' }, defs);
   el('feTurbulence', { type: 'fractalNoise', baseFrequency: '1.2', numOctaves: '1', result: 'bruit' }, f);
-  el('feDisplacementMap', { in: 'SourceGraphic', in2: 'bruit', scale: '1.6' }, f);
+  el('feDisplacementMap', { in: 'SourceGraphic', in2: 'bruit', scale: '0.9' }, f);
   const m = el('marker', { id: 'fleche', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' }, defs);
   el('path', { d: 'M0,0 L10,5 L0,10 z', fill: 'var(--craie-pale)' }, m);
 
@@ -144,17 +148,19 @@ export function exporterSvg(svg) {
   copie.setAttribute('height', vb[3]);
   const style = document.createElementNS(NS, 'style');
   style.textContent = `
-    svg { background: #1e3a31; }
-    .noeud rect { fill: #23443a; stroke-width: 1.8; }
-    .noeud text { font-family: monospace; font-size: 11.5px; fill: #f1efe6; }
-    .noeud.G rect { stroke: #f3d873; } .noeud.S rect { stroke: #f2a7a0; } .noeud.SG rect { stroke: #a6e3a1; }
-    .noeud.membre rect { stroke: #9fd3e6; } .noeud.haut rect, .noeud.bas rect { stroke: #8fa49a; stroke-dasharray: 4 4; }
-    .arete { fill: none; stroke: #c9cfc4; stroke-width: 1.4; } .arete.ordre { stroke-dasharray: 6 5; } .arete.hors { stroke: #8fa49a; stroke-dasharray: 2 5; }
+    svg { background: #F5F0EA; }
+    .noeud rect { fill: #FBF8F4; stroke-width: 1.8; }
+    .noeud text { font-family: monospace; font-size: 11.5px; fill: #2A2135; }
+    .noeud.G rect { stroke: #A854F6; fill: #A854F6; } .noeud.G > text:not(.tag) { fill: #fff; }
+    .noeud.S rect { stroke: #5A1FA8; fill: #EFE4FD; stroke-width: 2.2; }
+    .noeud.SG rect { stroke: #5A1FA8; fill: #A854F6; } .noeud.SG > text:not(.tag) { fill: #fff; }
+    .noeud.membre rect { stroke: #C9A5FA; } .noeud.haut rect, .noeud.bas rect { stroke: #8E8399; stroke-dasharray: 4 4; }
+    .arete { fill: none; stroke: #5C4F6B; stroke-width: 1.4; } .arete.ordre { stroke-dasharray: 6 5; } .arete.hors { stroke: #8E8399; stroke-dasharray: 2 5; }
     .tag { font-family: cursive; font-size: 12px; }`;
   copie.insertBefore(style, copie.firstChild);
   const fond = document.createElementNS(NS, 'rect');
-  fond.setAttribute('x', vb[0]); fond.setAttribute('y', vb[1]); fond.setAttribute('width', vb[2]); fond.setAttribute('height', vb[3]); fond.setAttribute('fill', '#1e3a31');
+  fond.setAttribute('x', vb[0]); fond.setAttribute('y', vb[1]); fond.setAttribute('width', vb[2]); fond.setAttribute('height', vb[3]); fond.setAttribute('fill', '#F5F0EA');
   copie.insertBefore(fond, style.nextSibling);
-  copie.querySelectorAll('[fill^="var("]').forEach((n) => n.setAttribute('fill', { 'var(--jaune)': '#f3d873', 'var(--rose)': '#f2a7a0', 'var(--vert)': '#a6e3a1', 'var(--rouge)': '#ff8a80', 'var(--craie-pale)': '#c9cfc4' }[n.getAttribute('fill')] ?? '#f1efe6'));
+  copie.querySelectorAll('[fill^="var("]').forEach((n) => n.setAttribute('fill', { 'var(--jaune)': '#A854F6', 'var(--rose)': '#5A1FA8', 'var(--vert)': '#2F7A55', 'var(--rouge)': '#B83A2E', 'var(--craie-pale)': '#5C4F6B' }[n.getAttribute('fill')] ?? '#2A2135'));
   return new XMLSerializer().serializeToString(copie);
 }
