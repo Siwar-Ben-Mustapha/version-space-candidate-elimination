@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Espace des versions — élimination des candidats</title>
+    <meta name="description" content="Tableau interactif de l'algorithme d'élimination des candidats : frontières S et G, journal des opérations, espace des versions et quiz." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="entete">
+      <div class="titre">
+        <h1>Espace des versions</h1>
+        <p>L'élimination des candidats, à la craie.</p>
+      </div>
+      <nav class="jeux" id="jeux" aria-label="Jeux de données du cours"></nav>
+    </header>
+
+    <main>
+      <section class="carnet" aria-labelledby="t-carnet">
+        <div class="carnet-texte">
+          <div class="bandeau">
+            <h2 id="t-carnet">Le carnet</h2>
+            <button class="craie" id="executer" type="button">Lancer l'algorithme</button>
+          </div>
+          <label class="sr" for="editeur">Description du jeu de données</label>
+          <textarea id="editeur" spellcheck="false" autocomplete="off"></textarea>
+          <p class="erreur" id="erreur" role="alert" hidden></p>
+          <details class="aide">
+            <summary>Syntaxe du carnet</summary>
+            <pre>attribut Nom : valeur1, valeur2, valeur3
+attribut Taille : intervalle 0 .. inf pas 1
+attribut Couleur : roux, orange, gris
+  groupe chaude : roux, orange
++ valeur1, 30, roux      exemple positif
+- valeur2, 70, gris      exemple négatif
+? dans un exemple = valeur manquante</pre>
+            <p>Un attribut catégoriel accepte une valeur ou « ? ». Un groupe ajoute une contrainte intermédiaire (comme « couleur chaude » dans le cours). Un attribut numérique se décrit par une grille ; ses contraintes sont des intervalles [bas, haut].</p>
+          </details>
+        </div>
+        <div class="carnet-table">
+          <h3>Exemples d'apprentissage</h3>
+          <div class="defile"><table id="table-exemples"></table></div>
+        </div>
+      </section>
+
+      <section class="tableau" aria-labelledby="t-tableau">
+        <div class="bandeau">
+          <h2 id="t-tableau">Le tableau</h2>
+          <div class="commandes">
+            <button class="rond" id="precedent" type="button" aria-label="Exemple précédent">‹</button>
+            <span id="compteur" aria-live="polite">—</span>
+            <button class="rond" id="suivant" type="button" aria-label="Exemple suivant">›</button>
+            <button class="craie petite" id="lecture" type="button">Lecture</button>
+            <label class="interrupteur"><input type="checkbox" id="mode-quiz" /> Mode quiz</label>
+          </div>
+        </div>
+
+        <ol class="frise" id="frise" aria-label="Étapes"></ol>
+
+        <div class="planche">
+          <div class="frontiere g">
+            <h3>G <small>les plus générales</small></h3>
+            <ul id="liste-g"></ul>
+          </div>
+          <figure class="dessin">
+            <svg id="graphe" role="img" aria-label="Espace des versions"></svg>
+            <figcaption id="legende-graphe"></figcaption>
+          </figure>
+          <div class="frontiere s">
+            <h3>S <small>les plus spécifiques</small></h3>
+            <ul id="liste-s"></ul>
+          </div>
+        </div>
+
+        <div class="quiz" id="quiz" hidden>
+          <p id="quiz-question"></p>
+          <div class="choix" id="quiz-choix">
+            <button type="button" data-rep="S">S seulement</button>
+            <button type="button" data-rep="G">G seulement</button>
+            <button type="button" data-rep="SG">S et G</button>
+            <button type="button" data-rep="aucun">Ni l'un ni l'autre</button>
+          </div>
+          <p id="quiz-retour" aria-live="polite"></p>
+          <p class="score" id="quiz-score"></p>
+        </div>
+
+        <div class="journal">
+          <h3 id="titre-journal">Journal</h3>
+          <ul id="journal"></ul>
+        </div>
+      </section>
+
+      <section class="classer" aria-labelledby="t-classer">
+        <div class="bandeau">
+          <h2 id="t-classer">Classer une nouvelle instance</h2>
+        </div>
+        <p class="note">Le verdict utilise tout l'espace des versions à l'étape affichée sur le tableau : positif si tout S couvre l'instance, négatif si aucun élément de G ne la couvre, sinon indéterminé.</p>
+        <form id="form-classer"></form>
+        <div id="verdict" aria-live="polite"></div>
+      </section>
+
+      <section class="sorties" aria-labelledby="t-sorties">
+        <h2 id="t-sorties">Emporter</h2>
+        <div class="boutons">
+          <button class="craie" id="export-md" type="button">Compte rendu (Markdown)</button>
+          <button class="craie" id="export-json" type="button">Résultats (JSON)</button>
+          <button class="craie" id="export-svg" type="button">Dessin du tableau (SVG)</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Cours : N. Ben Amor, <em>Machine Learning Theory</em>, chapitre 2 · T. M. Mitchell, <em>Machine Learning</em>, 1997.
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

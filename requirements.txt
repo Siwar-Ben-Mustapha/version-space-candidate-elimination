@@ -1,0 +1,1 @@
+# Aucune dépendance : le moteur et l'API n'utilisent que la bibliothèque standard Python.
