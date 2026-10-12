@@ -10,7 +10,8 @@ examples of the course *Machine Learning Theory*, chapter 2 (slides 72 to 87).
 
 https://github.com/user-attachments/assets/2df34cef-6a75-40fe-b6cd-50da4c8c2ba9
 
-The notebook, the board with the pseudo-code, the step-by-step build, zoom, infinite and collapsing spaces, and instance classification (1 min 40, with voice-over and subtitles).
+The notebook, the board with the pseudo-code, the step-by-step build, zoom, infinite and collapsing spaces,
+and instance classification (1 min 40, with voice-over and subtitles).
 
 ## What the application does
 
@@ -51,7 +52,7 @@ EnjoySport (slides 85–87), noisy EnjoySport (slide 83) and a contradictory exa
 ## Architecture
 
 ```
-api/                 Python serverless functions (Vercel), standard library only
+api/                 Python API functions, standard library only
   _ce.py             the engine: attributes, generality order, algorithm, version space
   _carnet.py         notebook format parsing and construction of the JSON responses
   _exemples.py       course datasets
@@ -61,7 +62,7 @@ api/                 Python serverless functions (Vercel), standard library only
   exemples.py        GET  /api/exemples
 public/              static interface, plain JavaScript, no framework and no build step
   index.html  style.css  app.js  graphe.js
-serveur.py           local development server (same routing as Vercel)
+serveur.py           local development server
 tests/               Python unit tests + browser walkthrough (Playwright)
 ```
 
@@ -125,15 +126,20 @@ npm install --no-save playwright && npx playwright install chromium
 node tests/parcours_navigateur.cjs
 ```
 
-## Deploy on Vercel
-
-1. Push the repository to GitHub.
-2. On Vercel, choose *Add New → Project* and import the repository. The *Framework Preset* is
-   **Other**; there is no build command and no environment variable.
-3. Deploy. Vercel serves `public/` statically and turns `api/*.py` into Python functions. Files
-   starting with `_` are shared modules, not routes.
-
 ## References
 
 - N. Ben Amor, *Machine Learning Theory*, chapter 2.
 - T. M. Mitchell, *Machine Learning*, McGraw-Hill, 1997, chapter 2.
+
+## Contact
+
+- GitHub: [github.com/Siwar-Ben-Mustapha](http://github.com/Siwar-Ben-Mustapha)
+- LinkedIn: [linkedin.com/in/siwar-ben-mustapha](https://linkedin.com/in/siwar-ben-mustapha)
+- Email: [siwar.ben-mustapha@dauphine.eu](mailto:siwar.ben-mustapha@dauphine.eu)
+- Portfolio: [www.siwarbenmustapha.me](https://www.siwarbenmustapha.me)
+
+## Author
+
+**Siwar Ben Mustapha**
+AI, Data Science & Agentic AI Student
+Université Paris Dauphine-PSL
