@@ -29,19 +29,19 @@ def make_handler(get=None, post=None):
 
         def do_GET(self):
             if not get:
-                return self._send(405, {"erreur": "Méthode non autorisée."})
+                return self._send(405, {"erreur": "Method not allowed."})
             self._call(get, None)
 
         def do_POST(self):
             if not post:
-                return self._send(405, {"erreur": "Méthode non autorisée."})
+                return self._send(405, {"erreur": "Method not allowed."})
             length = int(self.headers.get("Content-Length") or 0)
             if length > MAX_BODY:
-                return self._send(413, {"erreur": "Requête trop volumineuse."})
+                return self._send(413, {"erreur": "Request too large."})
             try:
                 data = json.loads(self.rfile.read(length) or b"{}")
             except json.JSONDecodeError:
-                return self._send(400, {"erreur": "Le corps de la requête doit être du JSON."})
+                return self._send(400, {"erreur": "The request body must be JSON."})
             self._call(post, data)
 
         def log_message(self, *args):  # silencieux

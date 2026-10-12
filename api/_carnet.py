@@ -1,13 +1,14 @@
 """
-Format texte « carnet » pour décrire un jeu de données, et service JSON de l'API.
+"Notebook" text format describing a dataset, and the API's JSON service.
+(The French keywords attribut / groupe / intervalle / pas are accepted as aliases.)
 
-    # commentaire
-    attribut Sport : football, hockey, gymnastics
-    attribut Taille : intervalle 0 .. inf pas 1
-    attribut Couleur : roux, orange, gris
-      groupe chaude : roux, orange
-    + football, 30, roux        ← exemple positif
-    - hockey, 70, gris          ← exemple négatif  (« ? » = valeur manquante)
+    # comment
+    attribute Sport : football, hockey, gymnastics
+    attribute Size : interval 0 .. inf step 1
+    attribute Colour : russet, orange, grey
+      group warm : russet, orange
+    + football, 30, russet      <- positive example
+    - hockey, 70, grey          <- negative example  ("?" = missing value)
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ from _ce import BOTTOM, Categorical, Interval, LanguageError, Space
 
 class CarnetError(ValueError):
     def __init__(self, line: int, message: str):
-        super().__init__(f"ligne {line} : {message}")
+        super().__init__(f"line {line}: {message}")
         self.line = line
         self.message = message
 
@@ -38,41 +39,43 @@ def parse_carnet(text: str):
                 title = line.lstrip("#").strip()
             continue
         low = line.lower()
-        if low.startswith("attribut "):
+        kw = next((k for k in ("attribute ", "attribut ") if low.startswith(k)), None)
+        if kw:
             if examples:
-                raise CarnetError(n, "les attributs doivent être déclarés avant les exemples.")
-            body = line[len("attribut "):]
+                raise CarnetError(n, "attributes must be declared before the examples.")
+            body = line[len(kw):]
             if ":" not in body:
-                raise CarnetError(n, "syntaxe attendue : attribut Nom : valeur1, valeur2, …")
+                raise CarnetError(n, "expected syntax: attribute Name : value1, value2, …")
             name, rest = (p.strip() for p in body.split(":", 1))
-            m = re.fullmatch(r"intervalle\s+(\S+)\s*\.\.\s*(\S+)(?:\s+pas\s+(\S+))?", rest, re.IGNORECASE)
+            m = re.fullmatch(r"(?:interval|intervalle)\s+(\S+)\s*\.\.\s*(\S+)(?:\s+(?:step|pas)\s+(\S+))?", rest, re.IGNORECASE)
             if m:
                 try:
                     lo, hi = _ce._num(m.group(1)), _ce._num(m.group(2))
                     step = _ce._num(m.group(3)) if m.group(3) else 1
                 except ValueError:
-                    raise CarnetError(n, "bornes ou pas de l'intervalle invalides.")
+                    raise CarnetError(n, "invalid interval bounds or step.")
                 attrs_spec.append([name, "intervalle", (lo, hi, step), n])
             else:
                 values = [v.strip() for v in rest.split(",") if v.strip()]
                 attrs_spec.append([name, "categoriel", {"values": values, "groups": {}}, n])
             continue
-        if low.startswith("groupe "):
+        kw = next((k for k in ("group ", "groupe ") if low.startswith(k)), None)
+        if kw:
             if not attrs_spec or attrs_spec[-1][1] != "categoriel":
-                raise CarnetError(n, "un groupe doit suivre un attribut catégoriel.")
-            body = line[len("groupe "):]
+                raise CarnetError(n, "a group must follow a categorical attribute.")
+            body = line[len(kw):]
             if ":" not in body:
-                raise CarnetError(n, "syntaxe attendue : groupe nom : valeur1, valeur2")
+                raise CarnetError(n, "expected syntax: group name : value1, value2")
             g, rest = (p.strip() for p in body.split(":", 1))
             attrs_spec[-1][2]["groups"][g] = [v.strip() for v in rest.split(",") if v.strip()]
             continue
         if line[0] in "+-−":
             if not attrs_spec:
-                raise CarnetError(n, "déclarez les attributs avant les exemples.")
+                raise CarnetError(n, "declare the attributes before the examples.")
             label = line[0] == "+"
             cells = [c.strip() for c in line[1:].split(",")]
             if len(cells) != len(attrs_spec):
-                raise CarnetError(n, f"{len(attrs_spec)} valeurs attendues, {len(cells)} trouvées.")
+                raise CarnetError(n, f"{len(attrs_spec)} values expected, {len(cells)} found.")
             values = []
             for (name, kind, _, _), c in zip(attrs_spec, cells):
                 if c in ("?", ""):
@@ -81,14 +84,14 @@ def parse_carnet(text: str):
                     try:
                         values.append(_ce._num(c))
                     except ValueError:
-                        raise CarnetError(n, f"« {c} » n'est pas un nombre (attribut « {name} »).")
+                        raise CarnetError(n, f"'{c}' is not a number (attribute '{name}').")
                 else:
                     values.append(c)
             examples.append((tuple(values), label, n))
             continue
-        raise CarnetError(n, "ligne non reconnue (attendu : attribut, groupe, + exemple, - exemple ou # commentaire).")
+        raise CarnetError(n, "unrecognized line (expected: attribute, group, + example, - example or # comment).")
     if not attrs_spec:
-        raise CarnetError(1, "aucun attribut déclaré.")
+        raise CarnetError(1, "no attribute declared.")
     attrs = []
     for name, kind, data, n in attrs_spec:
         try:
@@ -105,8 +108,8 @@ def parse_carnet(text: str):
             if err:
                 raise CarnetError(n, err + ".")
     if len(examples) > 500:
-        raise CarnetError(1, "au plus 500 exemples.")
-    return title or "Jeu de données", space, [(v, y) for v, y, _ in examples]
+        raise CarnetError(1, "at most 500 examples.")
+    return title or "Dataset", space, [(v, y) for v, y, _ in examples]
 
 
 # ───────────────────────────── service JSON ─────────────────────────────

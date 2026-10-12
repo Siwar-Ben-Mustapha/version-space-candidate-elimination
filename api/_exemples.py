@@ -1,11 +1,11 @@
-"""Jeux de données du cours (N. Ben Amor, chapitre 2) au format carnet."""
+"""Course datasets (N. Ben Amor, chapter 2) in notebook format."""
 
-SPORT = """# Sport — cours, diapositives 73 à 78
-attribut Sport : football, hockey, gymnastics, handball, decathlon
-attribut Type : team, individual
-attribut Place : outdoor, indoor
-attribut Level : national, world
-attribut Day : Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+SPORT = """# Sport — course, slides 73 to 78
+attribute Sport : football, hockey, gymnastics, handball, decathlon
+attribute Type : team, individual
+attribute Place : outdoor, indoor
+attribute Level : national, world
+attribute Day : Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
 + football, team, outdoor, national, Saturday
 + hockey, team, outdoor, national, Saturday
 - gymnastics, individual, indoor, world, Saturday
@@ -13,56 +13,56 @@ attribut Day : Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
 - decathlon, individual, outdoor, world, Sunday
 """
 
-OISEAUX = """# Oiseaux — cours, diapositives 79 à 82
-attribut Flat bill : True, False
-attribut Size : intervalle 0 .. inf pas 1
-attribut Neck colour : russet, orange, grey
-  groupe warm colour : russet, orange
-  groupe cold colour : grey
+OISEAUX = """# Birds — course, slides 79 to 82
+attribute Flat bill : True, False
+attribute Size : interval 0 .. inf step 1
+attribute Neck colour : russet, orange, grey
+  group warm colour : russet, orange
+  group cold colour : grey
 + True, 30, russet
 - False, 70, grey
 + True, 40, orange
 - False, 60, orange
 """
 
-ENJOYSPORT = """# EnjoySport — Mitchell (1997), diapositives 85 à 87
-attribut Sky : Sunny, Cloudy, Rainy
-attribut Temp : Warm, Cold
-attribut Humidity : Normal, High
-attribut Wind : Strong, Weak
-attribut Water : Warm, Cool
-attribut Forecast : Same, Change
+ENJOYSPORT = """# EnjoySport — Mitchell (1997), slides 85 to 87
+attribute Sky : Sunny, Cloudy, Rainy
+attribute Temp : Warm, Cold
+attribute Humidity : Normal, High
+attribute Wind : Strong, Weak
+attribute Water : Warm, Cool
+attribute Forecast : Same, Change
 + Sunny, Warm, Normal, Strong, Warm, Same
 + Sunny, Warm, High, Strong, Warm, Same
 - Rainy, Cold, High, Strong, Warm, Change
 + Sunny, Warm, High, Strong, Cool, Change
 """
 
-BRUIT = """# EnjoySport bruité — diapositive 83 (limites)
-attribut Sky : Sunny, Cloudy, Rainy
-attribut Temp : Warm, Cold
-attribut Humidity : Normal, High
-attribut Wind : Strong, Weak
-attribut Water : Warm, Cool
-attribut Forecast : Same, Change
+BRUIT = """# Noisy EnjoySport — slide 83 (limits)
+attribute Sky : Sunny, Cloudy, Rainy
+attribute Temp : Warm, Cold
+attribute Humidity : Normal, High
+attribute Wind : Strong, Weak
+attribute Water : Warm, Cool
+attribute Forecast : Same, Change
 + Sunny, Warm, Normal, Strong, Warm, Same
 - Sunny, Warm, High, Strong, Warm, Same
 - Rainy, Cold, High, Strong, Warm, Change
 + Sunny, Warm, High, Strong, Cool, Change
 """
 
-CONTRADICTION = """# Étiquettes contradictoires
-attribut Forme : cercle, carre, triangle
-attribut Couleur : rouge, vert, bleu
-+ cercle, rouge
-- carre, vert
-- cercle, rouge
+CONTRADICTION = """# Contradictory labels
+attribute Shape : circle, square, triangle
+attribute Colour : red, green, blue
++ circle, red
+- square, green
+- circle, red
 """
 
 TOUS = {
-    "sport": {"nom": "Sport", "source": "diapositives 73–78", "texte": SPORT},
-    "oiseaux": {"nom": "Oiseaux", "source": "diapositives 79–82", "texte": OISEAUX},
-    "enjoysport": {"nom": "EnjoySport", "source": "diapositives 85–87", "texte": ENJOYSPORT},
-    "bruit": {"nom": "EnjoySport bruité", "source": "diapositive 83", "texte": BRUIT},
-    "contradiction": {"nom": "Contradiction", "source": "exemple synthétique", "texte": CONTRADICTION},
+    "sport": {"nom": "Sport", "source": "slides 73–78", "texte": SPORT},
+    "oiseaux": {"nom": "Birds", "source": "slides 79–82", "texte": OISEAUX},
+    "enjoysport": {"nom": "EnjoySport", "source": "slides 85–87", "texte": ENJOYSPORT},
+    "bruit": {"nom": "Noisy EnjoySport", "source": "slide 83", "texte": BRUIT},
+    "contradiction": {"nom": "Contradiction", "source": "synthetic example", "texte": CONTRADICTION},
 }

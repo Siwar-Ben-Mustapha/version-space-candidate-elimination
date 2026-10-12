@@ -57,12 +57,82 @@ export function disposer(graphe) {
   return boites;
 }
 
-export function dessiner(svg, graphe, { surClic } = {}) {
+/**
+ * Zoom et déplacement : on ne touche qu'au viewBox. Molette = zoom vers le curseur,
+ * glisser = déplacer, double-clic = tout afficher. svg._vue expose zoomer() et ajuster()
+ * pour les boutons. La vue complète (base) est conservée pour l'export.
+ */
+const ZOOM_MIN = 0.05; // fois la vue complète
+const ZOOM_MAX = 6;
+
+function initialiserVue(svg, base) {
+  const v = svg._vue ?? (svg._vue = { base, vb: [...base], echelle: 1 });
+  v.base = base;
+  v.vb = [...base];
+  v.echelle = 1;
+  appliquer(svg);
+  if (v.pret) return;
+  v.pret = true;
+
+  const versSvg = (e) => {
+    const r = svg.getBoundingClientRect();
+    const [x, y, w, h] = v.vb;
+    // preserveAspectRatio « meet » : la plus petite échelle s'applique, avec des marges
+    const k = Math.min(r.width / w, r.height / h) || 1; // 1 si le dessin n'a pas de taille (onglet masqué)
+    const offX = (r.width - w * k) / 2, offY = (r.height - h * k) / 2;
+    return { x: x + (e.clientX - r.left - offX) / k, y: y + (e.clientY - r.top - offY) / k, k };
+  };
+
+  v.zoomer = (facteur, centre) => {
+    const cible = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, v.echelle * facteur));
+    facteur = cible / v.echelle;
+    const [x, y, w, h] = v.vb;
+    const c = centre ?? { x: x + w / 2, y: y + h / 2 };
+    // le point sous le curseur reste immobile
+    v.vb = [c.x - (c.x - x) / facteur, c.y - (c.y - y) / facteur, w / facteur, h / facteur];
+    v.echelle = cible;
+    appliquer(svg);
+  };
+  v.ajuster = () => { v.vb = [...v.base]; v.echelle = 1; appliquer(svg); };
+
+  svg.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    v.zoomer(Math.exp(-e.deltaY * 0.0015), versSvg(e));
+  }, { passive: false });
+  svg.addEventListener('dblclick', (e) => { if (!e.target.closest('.noeud')) v.ajuster(); });
+
+  let drag = null;
+  svg.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    drag = { cx: e.clientX, cy: e.clientY, vb: [...v.vb], k: versSvg(e).k, bouge: false };
+  });
+  svg.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.cx, dy = e.clientY - drag.cy;
+    if (!drag.bouge && Math.hypot(dx, dy) < 4) return;
+    if (!drag.bouge) { drag.bouge = true; svg.setPointerCapture(e.pointerId); svg.classList.add('deplace'); }
+    v.vb = [drag.vb[0] - dx / drag.k, drag.vb[1] - dy / drag.k, drag.vb[2], drag.vb[3]];
+    appliquer(svg);
+  });
+  const fin = () => { svg.classList.remove('deplace'); setTimeout(() => (drag = null), 0); };
+  svg.addEventListener('pointerup', fin);
+  svg.addEventListener('pointercancel', fin);
+  // un glisser ne doit pas être pris pour un clic sur un nœud
+  svg.addEventListener('click', (e) => { if (drag?.bouge) { e.stopPropagation(); e.preventDefault(); } }, true);
+}
+
+function appliquer(svg) {
+  svg.setAttribute('viewBox', svg._vue.vb.join(' '));
+  svg.dispatchEvent(new CustomEvent('vue', { detail: svg._vue.echelle }));
+}
+
+export function dessiner(svg, graphe, { surClic, precedents } = {}) {
   svg.replaceChildren();
   if (!graphe.noeuds.length) {
     svg.setAttribute('viewBox', '0 0 400 200');
+    initialiserVue(svg, [0, 0, 400, 200]);
     const t = el('text', { x: 200, y: 100, 'text-anchor': 'middle', class: 'tag', fill: 'var(--rouge)', 'font-size': 22 }, svg);
-    t.textContent = 'Espace des versions vide : ∅';
+    t.textContent = 'Empty version space: ∅';
     return;
   }
   const boites = disposer(graphe);
@@ -77,6 +147,7 @@ export function dessiner(svg, graphe, { surClic } = {}) {
   minX -= padX; maxX += padX; minY -= padY; maxY += padY;
   svg.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  initialiserVue(svg, [minX, minY, maxX - minX, maxY - minY]);
 
   const defs = el('defs', {}, svg);
   const f = el('filter', { id: 'craie', x: '-5%', y: '-5%', width: '110%', height: '110%' }, defs);
@@ -93,19 +164,22 @@ export function dessiner(svg, graphe, { surClic } = {}) {
     const t = boites.get(a.vers);
     if (!s || !t) continue;
     const x1 = s.x + s.w / 2, y1 = s.y, x2 = t.x + t.w / 2, y2 = t.y + t.h, ym = (y1 + y2) / 2;
-    const p = el('path', { d: `M${x1},${y1} C${x1},${ym} ${x2},${ym} ${x2},${y2}`, class: `arete ${a.type}`, filter: 'url(#craie)', 'marker-end': a.type === 'hors' ? '' : 'url(#fleche)' }, gA);
+    const neuve = precedents && (!precedents.has(a.de) || !precedents.has(a.vers));
+    const p = el('path', { d: `M${x1},${y1} C${x1},${ym} ${x2},${ym} ${x2},${y2}`, class: `arete ${a.type}${neuve ? ' neuf' : ''}`, filter: 'url(#craie)', 'marker-end': a.type === 'hors' ? '' : 'url(#fleche)' }, gA);
     aretes.push({ p, a });
   }
   const noeuds = [];
   for (const b of all) {
-    const g = el('g', { class: `noeud ${b.n.role}`, transform: `translate(${b.x},${b.y})`, tabindex: 0, role: 'button', 'aria-label': b.n.label }, gN);
+    const neuf = precedents && !precedents.has(b.n.id) && !['haut', 'bas'].includes(b.n.role);
+    const g = el('g', { class: `noeud ${b.n.role}${neuf ? ' neuf' : ''}`, transform: `translate(${b.x},${b.y})`, tabindex: 0, role: 'button', 'aria-label': b.n.label }, gN);
     el('rect', { width: b.w, height: b.h, rx: 8, filter: 'url(#craie)' }, g);
     const t = el('text', { x: b.w / 2, y: b.h / 2 + 4, 'text-anchor': 'middle' }, g);
     t.textContent = b.n.label;
     if (['G', 'S', 'SG'].includes(b.n.role)) {
-      const tag = el('text', { x: b.w - 6, y: -5, 'text-anchor': 'end', class: 'tag', fill: b.n.role === 'G' ? 'var(--jaune)' : b.n.role === 'S' ? 'var(--rose)' : 'var(--vert)' }, g);
+      const tag = el('text', { x: b.w - 6, y: -5, 'text-anchor': 'end', class: 'tag', fill: b.n.role === 'G' ? 'var(--corail-fonce)' : b.n.role === 'S' ? 'var(--rose)' : 'var(--craie)' }, g);
       tag.textContent = b.n.role === 'SG' ? 'S = G' : b.n.role;
     }
+    if (neuf) g.style.animationDelay = `${0.15 + b.n.rang * 0.12}s`;
     noeuds.push({ g, b });
   }
 
@@ -137,30 +211,4 @@ export function dessiner(svg, graphe, { surClic } = {}) {
     g.addEventListener('click', () => surligner(b.n.id));
     g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); surligner(b.n.id); } });
   });
-}
-
-/** SVG autonome (styles intégrés) pour l'export. */
-export function exporterSvg(svg) {
-  const copie = svg.cloneNode(true);
-  copie.setAttribute('xmlns', NS);
-  const vb = copie.getAttribute('viewBox').split(' ').map(Number);
-  copie.setAttribute('width', vb[2]);
-  copie.setAttribute('height', vb[3]);
-  const style = document.createElementNS(NS, 'style');
-  style.textContent = `
-    svg { background: #F5F0EA; }
-    .noeud rect { fill: #FBF8F4; stroke-width: 1.8; }
-    .noeud text { font-family: monospace; font-size: 11.5px; fill: #2A2135; }
-    .noeud.G rect { stroke: #A854F6; fill: #A854F6; } .noeud.G > text:not(.tag) { fill: #fff; }
-    .noeud.S rect { stroke: #5A1FA8; fill: #EFE4FD; stroke-width: 2.2; }
-    .noeud.SG rect { stroke: #5A1FA8; fill: #A854F6; } .noeud.SG > text:not(.tag) { fill: #fff; }
-    .noeud.membre rect { stroke: #C9A5FA; } .noeud.haut rect, .noeud.bas rect { stroke: #8E8399; stroke-dasharray: 4 4; }
-    .arete { fill: none; stroke: #5C4F6B; stroke-width: 1.4; } .arete.ordre { stroke-dasharray: 6 5; } .arete.hors { stroke: #8E8399; stroke-dasharray: 2 5; }
-    .tag { font-family: cursive; font-size: 12px; }`;
-  copie.insertBefore(style, copie.firstChild);
-  const fond = document.createElementNS(NS, 'rect');
-  fond.setAttribute('x', vb[0]); fond.setAttribute('y', vb[1]); fond.setAttribute('width', vb[2]); fond.setAttribute('height', vb[3]); fond.setAttribute('fill', '#F5F0EA');
-  copie.insertBefore(fond, style.nextSibling);
-  copie.querySelectorAll('[fill^="var("]').forEach((n) => n.setAttribute('fill', { 'var(--jaune)': '#A854F6', 'var(--rose)': '#5A1FA8', 'var(--vert)': '#2F7A55', 'var(--rouge)': '#B83A2E', 'var(--craie-pale)': '#5C4F6B' }[n.getAttribute('fill')] ?? '#2A2135'));
-  return new XMLSerializer().serializeToString(copie);
 }

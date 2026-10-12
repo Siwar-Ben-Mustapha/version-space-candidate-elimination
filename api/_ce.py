@@ -35,9 +35,9 @@ class Categorical:
 
     def __init__(self, name: str, values: list[str], groups: Optional[dict[str, list[str]]] = None):
         if not values:
-            raise LanguageError(f"L'attribut « {name} » n'a aucune valeur.")
+            raise LanguageError(f"Attribute '{name}' has no values.")
         if len(set(values)) != len(values):
-            raise LanguageError(f"L'attribut « {name} » contient des valeurs en double.")
+            raise LanguageError(f"Attribute '{name}' contains duplicate values.")
         self.name = name
         self.values = list(values)
         self.domain = frozenset(values)
@@ -53,7 +53,7 @@ class Categorical:
 
     def _extension(self, g: str, seen: set) -> frozenset:
         if g in seen:
-            raise LanguageError(f"« {self.name} » : la hiérarchie contient un cycle.")
+            raise LanguageError(f"'{self.name}': the hierarchy contains a cycle.")
         seen = seen | {g}
         out = set()
         for m in self.groups[g]:
@@ -62,9 +62,9 @@ class Categorical:
             elif m in self.groups:
                 out |= self._extension(m, seen)
             else:
-                raise LanguageError(f"« {self.name} » : le groupe « {g} » contient « {m} », inconnu.")
+                raise LanguageError(f"'{self.name}': group '{g}' contains '{m}', which is unknown.")
         if not out:
-            raise LanguageError(f"« {self.name} » : le groupe « {g} » est vide.")
+            raise LanguageError(f"'{self.name}': group '{g}' is empty.")
         return frozenset(out)
 
     def _check_tree(self, nodes: dict[str, frozenset]) -> None:
@@ -72,7 +72,7 @@ class Categorical:
         for i, a in enumerate(exts):
             for b in exts[i + 1:]:
                 if a & b and not (a <= b or b <= a):
-                    raise LanguageError(f"« {self.name} » : deux groupes se chevauchent, la hiérarchie doit être un arbre.")
+                    raise LanguageError(f"'{self.name}': two groups overlap, the hierarchy must be a tree.")
 
     # -- opérations du langage --
     def full(self):
@@ -119,12 +119,12 @@ class Categorical:
             return frozenset([t])
         if t in self.groups:
             return self._extension(t, set())
-        raise LanguageError(f"« {t} » n'est ni une valeur ni un groupe de « {self.name} ».")
+        raise LanguageError(f"'{t}' is neither a value nor a group of '{self.name}'.")
 
     def check_value(self, v) -> Optional[str]:
         if v is None or v in self.domain:
             return None
-        return f"« {v} » n'appartient pas au domaine de « {self.name} »"
+        return f"'{v}' does not belong to the domain of '{self.name}'"
 
     def describe(self) -> dict:
         return {"nom": self.name, "type": "categoriel", "valeurs": self.values, "groupes": self.groups}
@@ -135,9 +135,9 @@ class Interval:
 
     def __init__(self, name: str, low: float, high: float, step: float = 1):
         if not step > 0:
-            raise LanguageError(f"« {name} » : le pas doit être positif.")
+            raise LanguageError(f"'{name}': the step must be positive.")
         if not low < high:
-            raise LanguageError(f"« {name} » : le minimum doit être inférieur au maximum.")
+            raise LanguageError(f"'{name}': the minimum must be less than the maximum.")
         self.name, self.low, self.high, self.step = name, low, high, step
         self.digits = max(0, -int(math.floor(math.log10(step)))) if step < 1 else 0
 
@@ -220,19 +220,19 @@ class Interval:
         if t2[0] in "[]" and t2[-1] in "[]" and "," in t2:
             a, b = t2[1:-1].split(",")
             return self._make(_num(a), _num(b))
-        raise LanguageError(f"« {t} » n'est pas un intervalle de « {self.name} ».")
+        raise LanguageError(f"'{t}' is not an interval of '{self.name}'.")
 
     def check_value(self, v) -> Optional[str]:
         if v is None:
             return None
         if not isinstance(v, (int, float)):
-            return f"« {v} » n'est pas un nombre (attribut « {self.name} »)"
+            return f"'{v}' is not a number (attribute '{self.name}')"
         if not self.low <= v <= self.high:
-            return f"{v} est hors du domaine de « {self.name} »"
+            return f"{v} is outside the domain of '{self.name}'"
         origin = 0 if math.isinf(self.low) else self.low
         k = (v - origin) / self.step
         if abs(k - round(k)) > 1e-9:
-            return f"{v} n'est pas sur la grille de « {self.name} » (pas {self.step})"
+            return f"{v} is not on the grid of '{self.name}' (step {self.step})"
         return None
 
     def describe(self) -> dict:
@@ -299,7 +299,7 @@ class Space:
         body = text.strip().strip("⟨⟩<>()")
         tokens = re.findall(r"\s*([\[\]][^,\[\]]*,[^,\[\]]*[\[\]]|[^,]+?)\s*(?:,|$)", body)
         if len(tokens) != len(self.attrs):
-            raise LanguageError(f"{len(self.attrs)} contraintes attendues, {len(tokens)} reçues.")
+            raise LanguageError(f"{len(self.attrs)} constraints expected, {len(tokens)} received.")
         if any(t.strip() == "∅" for t in tokens):
             return BOTTOM
         return tuple(a.parse(t) for a, t in zip(self.attrs, tokens))
@@ -352,19 +352,19 @@ def candidate_elimination(space: Space, examples: list, max_boundary: int = 3000
                 h = space.generalize(s, x)
                 if any(space.geq(g, h) for g in G):
                     newS.append(h)
-                    ops.append(Operation("generalise", "S", space.show(s), [space.show(h)], "généralisation minimale couvrant l'exemple"))
+                    ops.append(Operation("generalise", "S", space.show(s), [space.show(h)], "minimal generalization covering the example"))
                 else:
-                    ops.append(Operation("rejete", "S", space.show(s), [space.show(h)], "aucune hypothèse de G n'est plus générale"))
+                    ops.append(Operation("rejete", "S", space.show(s), [space.show(h)], "no hypothesis in G is more general"))
             uniq = list(dict.fromkeys(newS))
             S = _most_specific(space, uniq)
             for h in uniq:
                 if h not in S:
-                    ops.append(Operation("elague", "S", space.show(h), raison="plus générale qu'un autre élément de S"))
+                    ops.append(Operation("elague", "S", space.show(h), raison="more general than another element of S"))
         else:
             kept = []
             for s in S:
                 if space.covers(s, x):
-                    ops.append(Operation("retire", "S", space.show(s), raison="couvre l'exemple négatif"))
+                    ops.append(Operation("retire", "S", space.show(s), raison="covers the negative example"))
                 else:
                     kept.append(s)
             S = kept
@@ -377,18 +377,18 @@ def candidate_elimination(space: Space, examples: list, max_boundary: int = 3000
                 good = [h for h in specs if any(space.geq(h, s) for s in S)]
                 bad = [h for h in specs if h not in good]
                 newG.extend(good)
-                ops.append(Operation("specialise", "G", space.show(g), [space.show(h) for h in good], f"{len(specs)} spécialisations minimales, {len(good)} plus générales qu'un élément de S"))
+                ops.append(Operation("specialise", "G", space.show(g), [space.show(h) for h in good], f"{len(specs)} minimal specializations, {len(good)} more general than an element of S"))
                 if bad:
-                    ops.append(Operation("rejete", "G", None, [space.show(h) for h in bad], "aucun élément de S n'est plus spécifique"))
+                    ops.append(Operation("rejete", "G", None, [space.show(h) for h in bad], "no element of S is more specific"))
                 if len(newG) > max_boundary:
-                    raise LanguageError(f"La frontière G dépasse {max_boundary} hypothèses : réduisez le nombre d'attributs ou de valeurs.")
+                    raise LanguageError(f"Boundary G exceeds {max_boundary} hypotheses: reduce the number of attributes or values.")
             uniq = list(dict.fromkeys(newG))
             G = _most_general(space, uniq)
             for h in uniq:
                 if h not in G:
-                    ops.append(Operation("elague", "G", space.show(h), raison="plus spécifique qu'un autre élément de G"))
+                    ops.append(Operation("elague", "G", space.show(h), raison="more specific than another element of G"))
         if not ops:
-            ops.append(Operation("rien", "S/G", raison="S et G sont déjà cohérents avec cet exemple"))
+            ops.append(Operation("rien", "S/G", raison="S and G are already consistent with this example"))
         states.append({"S": list(S), "G": list(G), "ops": ops})
     return states
 
@@ -444,12 +444,12 @@ def hasse(space: Space, hs: list):
 
 def classify(space: Space, S, G, x):
     if not S or not G:
-        return "aucune", "L'espace des versions est vide : aucune hypothèse n'est cohérente."
+        return "aucune", "The version space is empty: no hypothesis is consistent."
     if all(space.covers(s, x) for s in S):
-        return "positif", "Tous les éléments de S couvrent l'instance, donc toutes les hypothèses de l'espace des versions la classent positive."
+        return "positif", "Every element of S covers the instance, so every hypothesis in the version space classifies it as positive."
     if not any(space.covers(g, x) for g in G):
-        return "negatif", "Aucun élément de G ne couvre l'instance, donc aucune hypothèse de l'espace des versions ne la classe positive."
-    return "indetermine", "Certaines hypothèses la classent positive, d'autres négative : il faut plus d'exemples."
+        return "negatif", "No element of G covers the instance, so no hypothesis in the version space classifies it as positive."
+    return "indetermine", "Some hypotheses classify it as positive, others as negative: more examples are needed."
 
 
 def brute_force(space: Space, examples: list):

@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#A854F6" />
-    <title>Espace des versions — élimination des candidats</title>
-    <meta name="description" content="Tableau interactif de l'algorithme d'élimination des candidats : frontières S et G, journal des opérations, espace des versions et quiz." />
+    <meta name="theme-color" content="#F58F7C" />
+    <title>Version Space — Candidate Elimination</title>
+    <meta name="description" content="Interactive board for the candidate elimination algorithm: S and G boundaries, operation log and version space." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
@@ -14,108 +14,117 @@
   <body>
     <header class="entete">
       <div class="titre">
-        <h1>Espace des versions</h1>
-        <p>L'élimination des candidats, pas à pas.</p>
+        <h1>Version Space</h1>
+        <p>Candidate elimination, step by step.</p>
       </div>
-      <nav class="jeux" id="jeux" aria-label="Jeux de données du cours"></nav>
+      <nav class="jeux" id="jeux" aria-label="Course datasets"></nav>
     </header>
 
     <main>
       <section class="carnet" aria-labelledby="t-carnet">
         <div class="carnet-texte">
           <div class="bandeau">
-            <h2 id="t-carnet">Le carnet</h2>
-            <button class="craie" id="executer" type="button">Lancer l'algorithme</button>
+            <h2 id="t-carnet">The notebook</h2>
+            <button class="craie" id="executer" type="button">Run the algorithm</button>
           </div>
-          <label class="sr" for="editeur">Description du jeu de données</label>
+          <label class="sr" for="editeur">Dataset description</label>
           <textarea id="editeur" spellcheck="false" autocomplete="off"></textarea>
           <p class="erreur" id="erreur" role="alert" hidden></p>
           <details class="aide">
-            <summary>Syntaxe du carnet</summary>
-            <pre>attribut Nom : valeur1, valeur2, valeur3
-attribut Taille : intervalle 0 .. inf pas 1
-attribut Couleur : roux, orange, gris
-  groupe chaude : roux, orange
-+ valeur1, 30, roux      exemple positif
-- valeur2, 70, gris      exemple négatif
-? dans un exemple = valeur manquante</pre>
-            <p>Un attribut catégoriel accepte une valeur ou « ? ». Un groupe ajoute une contrainte intermédiaire (comme « couleur chaude » dans le cours). Un attribut numérique se décrit par une grille ; ses contraintes sont des intervalles [bas, haut].</p>
+            <summary>Notebook syntax</summary>
+            <pre>attribute Name : value1, value2, value3
+attribute Size : interval 0 .. inf step 1
+attribute Colour : russet, orange, grey
+  group warm : russet, orange
++ value1, 30, russet     positive example
+- value2, 70, grey       negative example
+? in an example = missing value</pre>
+            <p>A categorical attribute accepts a value or “?”. A group adds an intermediate constraint (like “warm colour” in the course). A numeric attribute is described by a grid; its constraints are intervals [low, high]. The French keywords (attribut, groupe, intervalle, pas) are also accepted.</p>
           </details>
         </div>
         <div class="carnet-table">
-          <h3>Exemples d'apprentissage</h3>
+          <h3>Training examples</h3>
           <div class="defile"><table id="table-exemples"></table></div>
         </div>
       </section>
 
       <section class="tableau" aria-labelledby="t-tableau">
         <div class="bandeau">
-          <h2 id="t-tableau">Le tableau</h2>
+          <h2 id="t-tableau">The board</h2>
           <div class="commandes">
-            <button class="rond" id="precedent" type="button" aria-label="Exemple précédent">‹</button>
+            <button class="rond" id="precedent" type="button" aria-label="Previous example">‹</button>
             <span id="compteur" aria-live="polite">—</span>
-            <button class="rond" id="suivant" type="button" aria-label="Exemple suivant">›</button>
-            <button class="craie petite" id="lecture" type="button">Lecture</button>
-            <label class="interrupteur"><input type="checkbox" id="mode-quiz" /> Mode quiz</label>
+            <button class="rond" id="suivant" type="button" aria-label="Next example">›</button>
+            <button class="craie petite" id="lecture" type="button">Build step by step</button>
           </div>
         </div>
 
-        <ol class="frise" id="frise" aria-label="Étapes"></ol>
+        <ol class="frise" id="frise" aria-label="Steps"></ol>
 
-        <div class="planche">
-          <div class="frontiere g">
-            <h3>G <small>les plus générales</small></h3>
-            <ul id="liste-g"></ul>
-          </div>
-          <figure class="dessin">
-            <svg id="graphe" role="img" aria-label="Espace des versions"></svg>
-            <figcaption id="legende-graphe"></figcaption>
-          </figure>
-          <div class="frontiere s">
-            <h3>S <small>les plus spécifiques</small></h3>
-            <ul id="liste-s"></ul>
-          </div>
-        </div>
+        <div class="scene">
+          <aside class="algo" aria-labelledby="t-algo">
+            <h3 id="t-algo">Candidate Elimination</h3>
+            <p class="algo-source">Course pseudo-code, slide 74</p>
+            <ol id="algo" class="algo-code"></ol>
+          </aside>
 
-        <div class="quiz" id="quiz" hidden>
-          <p id="quiz-question"></p>
-          <div class="choix" id="quiz-choix">
-            <button type="button" data-rep="S">S seulement</button>
-            <button type="button" data-rep="G">G seulement</button>
-            <button type="button" data-rep="SG">S et G</button>
-            <button type="button" data-rep="aucun">Ni l'un ni l'autre</button>
+          <div class="espace">
+            <div class="exemple" id="exemple" aria-live="polite"></div>
+
+            <div class="frontiere g">
+              <h3>G <small>most general</small></h3>
+              <ul id="liste-g"></ul>
+            </div>
+
+            <figure class="dessin">
+              <div class="zoom" role="group" aria-label="Drawing zoom">
+                <button type="button" id="zoom-plus" aria-label="Zoom in" title="Zoom in">+</button>
+                <button type="button" id="zoom-moins" aria-label="Zoom out" title="Zoom out">−</button>
+                <button type="button" id="zoom-ajuster" title="Show everything">Fit all</button>
+                <span id="zoom-niveau" aria-live="off">100 %</span>
+              </div>
+              <svg id="graphe" role="img" aria-label="Version space"></svg>
+              <figcaption id="legende-graphe"></figcaption>
+            </figure>
+
+            <div class="frontiere s">
+              <h3>S <small>most specific</small></h3>
+              <ul id="liste-s"></ul>
+            </div>
+
+            <div class="commentaire" id="commentaire" aria-live="polite">
+              <h3>What is happening</h3>
+              <div id="commentaire-texte"></div>
+            </div>
           </div>
-          <p id="quiz-retour" aria-live="polite"></p>
-          <p class="score" id="quiz-score"></p>
         </div>
 
         <div class="journal">
-          <h3 id="titre-journal">Journal</h3>
+          <h3 id="titre-journal">Log</h3>
           <ul id="journal"></ul>
         </div>
       </section>
 
       <section class="classer" aria-labelledby="t-classer">
         <div class="bandeau">
-          <h2 id="t-classer">Classer une nouvelle instance</h2>
+          <h2 id="t-classer">Classify a new instance</h2>
         </div>
-        <p class="note">Le verdict utilise tout l'espace des versions à l'étape affichée sur le tableau : positif si tout S couvre l'instance, négatif si aucun élément de G ne la couvre, sinon indéterminé.</p>
+        <p class="note">The verdict uses the whole version space at the step shown on the board: positive if every element of S covers the instance, negative if no element of G covers it, otherwise undetermined.</p>
         <form id="form-classer"></form>
         <div id="verdict" aria-live="polite"></div>
       </section>
 
       <section class="sorties" aria-labelledby="t-sorties">
-        <h2 id="t-sorties">Emporter</h2>
+        <h2 id="t-sorties">Export</h2>
         <div class="boutons">
-          <button class="craie" id="export-md" type="button">Compte rendu (Markdown)</button>
-          <button class="craie" id="export-json" type="button">Résultats (JSON)</button>
-          <button class="craie" id="export-svg" type="button">Dessin du tableau (SVG)</button>
+          <button class="craie" id="export-md" type="button">Report (Markdown)</button>
+          <button class="craie" id="export-json" type="button">Results (JSON)</button>
         </div>
       </section>
     </main>
 
     <footer>
-      Cours : N. Ben Amor, <em>Machine Learning Theory</em>, chapitre 2 · T. M. Mitchell, <em>Machine Learning</em>, 1997.
+      Course: N. Ben Amor, <em>Machine Learning Theory</em>, chapter 2 · T. M. Mitchell, <em>Machine Learning</em>, 1997.
     </footer>
 
     <script type="module" src="app.js"></script>

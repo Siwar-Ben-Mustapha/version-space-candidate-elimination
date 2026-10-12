@@ -1,6 +1,6 @@
 """
-Serveur de développement local (bibliothèque standard uniquement) :
-sert public/ et route /api/<nom> vers api/<nom>.py, comme sur Vercel.
+Local development server (standard library only):
+serves public/ and routes /api/<name> to api/<name>.py, like Vercel does.
 
     python serveur.py        → http://localhost:8000
 """
@@ -33,6 +33,11 @@ class Dev(SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=os.path.join(ROOT, "public"), **k)
 
+    def end_headers(self):
+        # développement : toujours servir la dernière version des fichiers
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def _api(self):
         name = self.path.split("?")[0][len("/api/"):].strip("/")
         h = load(name)
@@ -61,5 +66,5 @@ class Dev(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    print(f"Espace des versions → http://localhost:{port}")
+    print(f"Version Space -> http://localhost:{port}")
     ThreadingHTTPServer(("127.0.0.1", port), Dev).serve_forever()

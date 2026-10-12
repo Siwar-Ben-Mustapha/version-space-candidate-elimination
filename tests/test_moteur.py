@@ -172,7 +172,7 @@ class TestCarnet(unittest.TestCase):
         self.assertEqual(e.exception.line, 2)
         with self.assertRaises(CarnetError) as e:
             parse_carnet("attribut A : a, b\n+ c")
-        self.assertIn("domaine", str(e.exception))
+        self.assertIn("domain", str(e.exception))
         with self.assertRaises(CarnetError):
             parse_carnet("attribut T : intervalle 0 .. 10 pas 2\n+ 3")
         with self.assertRaises(CarnetError):
