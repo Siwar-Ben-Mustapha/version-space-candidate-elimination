@@ -176,7 +176,7 @@ export function dessiner(svg, graphe, { surClic, precedents } = {}) {
     const t = el('text', { x: b.w / 2, y: b.h / 2 + 4, 'text-anchor': 'middle' }, g);
     t.textContent = b.n.label;
     if (['G', 'S', 'SG'].includes(b.n.role)) {
-      const tag = el('text', { x: b.w - 6, y: -5, 'text-anchor': 'end', class: 'tag', fill: b.n.role === 'G' ? 'var(--corail-fonce)' : b.n.role === 'S' ? 'var(--rose)' : 'var(--craie)' }, g);
+      const tag = el('text', { x: b.w - 6, y: -5, 'text-anchor': 'end', class: 'tag', fill: b.n.role === 'G' ? 'var(--accent)' : b.n.role === 'S' ? 'var(--rose)' : 'var(--craie)' }, g);
       tag.textContent = b.n.role === 'SG' ? 'S = G' : b.n.role;
     }
     if (neuf) g.style.animationDelay = `${0.15 + b.n.rang * 0.12}s`;

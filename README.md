@@ -1,3 +1,4 @@
+
 # Version Space — candidate elimination, step by step
 
 Educational web application for the **candidate elimination** algorithm (Mitchell, 1977), built on the
@@ -41,9 +42,7 @@ and instance classification (1 min 40, with voice-over and subtitles).
   (a count, not a probability).
 - **Exports**: Markdown report and JSON results.
 
-Palette: charcoal `#2C2B30`, grey `#4F4F51`, light grey `#D6D6D6`, pink `#F2C4CE` and coral `#F58F7C`
-(G in solid coral, S in pink with a grey outline; a darkened coral `#C25B47` is used for text and
-errors to stay readable).
+Palette (dark theme): `#1A1A2E` background, `#16213E` cards, `#0F3460` lines, `#E94560` accent and `#F9F9F9` text (G in solid red, S in navy with a light-blue outline; a few derived tints are used for secondary text and for the S colour to stay readable).
 
 Included datasets: Sport (slides 73–78), Birds with intervals and a colour hierarchy (slides 79–82),
 EnjoySport (slides 85–87), noisy EnjoySport (slide 83) and a contradictory example.
